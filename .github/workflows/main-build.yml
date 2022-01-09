@@ -1,0 +1,23 @@
+name: Build & Test
+on: push
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+    - name: Git checkout
+      uses: actions/checkout@v2
+    - name: Setup .NET 6
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 6.0.x
+    - name: Run build script
+      env:
+        WeatherApi__ApiKey: ${{ secrets.WeatherApi_ApiKey }}
+      working-directory: scripts
+      run: ./dotnet_build.sh
