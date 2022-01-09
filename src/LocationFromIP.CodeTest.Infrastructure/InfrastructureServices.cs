@@ -15,9 +15,23 @@ namespace LocationFromIP.CodeTest.Infrastructure
         {
             services.Configure<WeatherApiConfiguration>(configuration.GetSection("WeatherApi"));
 
-            services.AddHttpClient<ILocationDetailQuery, WeatherApiClient>()
+            services.AddDistributedRedisCache(options => 
+            {
+                options.Configuration = "localhost"; // might need to change this
+                options.InstanceName = "IPLookup";
+            });
+
+            services.AddHttpClient<WeatherApiClient>()
                .AddPolicyHandler(PollyPolicy.Create())
                .ConfigureHttpClient();
+
+            services.AddScoped<ILocationDetailQuery>(sp =>
+            {
+                // wrap the WeatherApiClient in a cache
+                var weatherApiClient = sp.GetRequiredService<WeatherApiClient>();
+                var queryCache = ActivatorUtilities.CreateInstance<LocationDetailQueryCache>(sp, weatherApiClient);
+                return queryCache;
+            });
         }
 
         private static IHttpClientBuilder ConfigureHttpClient(this IHttpClientBuilder builder)

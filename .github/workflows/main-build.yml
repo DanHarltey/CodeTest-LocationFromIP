@@ -12,10 +12,16 @@ jobs:
     steps:
     - name: Git checkout
       uses: actions/checkout@v2
+
+    - name: Start redis
+      run: docker-compose up -d
+      working-directory: scripts/dev-dependencies
+
     - name: Setup .NET 6
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 6.0.x
+
     - name: Run build script
       env:
         WeatherApi__ApiKey: ${{ secrets.WeatherApi_ApiKey }}
